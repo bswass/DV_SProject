@@ -8,8 +8,8 @@ navbarPage(
            sidebarPanel(
              actionButton(inputId = "light", label = "Light"),
              actionButton(inputId = "dark", label = "Dark"),
-             sliderInput("KPI1", "KPI_Low_Max_value:", 
-                         min = 0, max = 0.4,  value = 0.4),
+             sliderInput("KPI1", "KPI_High_Max_value:", 
+                         min = 0.6666, max = 1.0,  value = 1.0),
              sliderInput("KPI2", "KPI_Medium_Max_value:", 
                          min = 0.4, max = 0.6666,  value = 0.6666),
              textInput(inputId = "title", 

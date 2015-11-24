@@ -10,57 +10,84 @@ require(DT)
 require(extrafont)
 library(reshape2)
 
-# Pull data for Barchart before placing into the shiny server
-dfa <- data.frame(fromJSON(getURL(URLencode(gsub("\n", " ", 'skipper.cs.utexas.edu:5001/rest/native/?query=
-                                                "select YEARINC, sum_fatalities, sum_total, kpi as ratio, DATEINC,
-                                                case
-                                                when kpi > "p1" then \\\'01 High Fatality\\\'
-                                                when kpi > "p2" then \\\'02 Medium Fatality\\\'
-                                                else \\\'03 Low Fatality\\\'
-                                                end kpi
-                                                from (select YEARINC,
-                                                sum(FATALITIES) as sum_fatalities, sum(TOTAL_VICTIMS) as sum_total,
-                                                sum(FATALITIES) / sum(TOTAL_VICTIMS) as kpi, DATEINC
-                                                from shootingsmass
-                                                group by YEARINC, DATEINC)
-                                                order by YEARINC;"
-                                                ')), httpheader=c(DB='jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl', 
-                                                                  USER='C##cs329e_btb687', PASS='orcl_btb687', MODE='native_mode', 
-                                                                  MODEL='model', returnDimensions = 'False', returnFor = 'JSON', 
-                                                                  p1=KPI_High_Max_value, p2=KPI_Medium_Max_value), verbose = TRUE))); 
+KPI_High_Max_value = .666
+KPI_Medium_Max_value = .4
 
-dfa$DATEINC <- as.character(as.Date(dfa$DATEINC,format='%m/%d/%Y'))
+# Pull data for Barchart before placing into the shiny server
+dfa <-
+  data.frame(fromJSON(getURL(
+    URLencode(
+      gsub(
+        "\n", " ", 'skipper.cs.utexas.edu:5001/rest/native/?query=
+        "select YEARINC, sum_fatalities, sum_total, kpi as ratio, DATEINC,
+        case
+        when kpi > "p1" then \\\'01 High Fatality\\\'
+        when kpi > "p2" then \\\'02 Medium Fatality\\\'
+        else \\\'03 Low Fatality\\\'
+        end kpi
+        from (select YEARINC,
+        sum(FATALITIES) as sum_fatalities, sum(TOTAL_VICTIMS) as sum_total,
+        sum(FATALITIES) / sum(TOTAL_VICTIMS) as kpi, DATEINC
+        from shootingsmass
+        group by YEARINC, DATEINC)
+        order by YEARINC;"
+        '
+      )
+      ), httpheader = c(
+        DB = 'jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl',
+        USER =
+          'C##cs329e_btb687', PASS = 'orcl_btb687', MODE = 'native_mode',
+        MODEL =
+          'model', returnDimensions = 'False', returnFor = 'JSON',
+        p1 = KPI_High_Max_value, p2 =
+          KPI_Medium_Max_value
+    ), verbose = TRUE
+  )));
+
+dfa$DATEINC <- as.character(as.Date(dfa$DATEINC,format = '%m/%d/%Y'))
 
 
 # Pull data for crosstab before placing into shiny server
-dfb <- data.frame(fromJSON(getURL(URLencode(gsub("\n", " ", 'skipper.cs.utexas.edu:5001/rest/native/?query=
-                                                "select YEARINC, RACE, sum_fatalities, sum_total, kpi as ratio,
-                                                 case
-                                                 when kpi > "p1" then \\\'01 High Fatality\\\'
-                                                 when kpi > "p2" then \\\'02 Medium Fatality\\\'
-                                                 else \\\'03 Low Fatality\\\'
-                                                 end kpi
-                                                 from (select YEARINC, RACE,
-                                                 sum(FATALITIES) as sum_fatalities, sum(TOTAL_VICTIMS) as sum_total,
-                                                 sum(FATALITIES) / sum(TOTAL_VICTIMS) as kpi
-                                                 from shootingsmass
-                                                 group by YEARINC, RACE)
-                                                 order by YEARINC desc;"
-                                                 ')), httpheader=c(DB='jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl', 
-                                                                   USER='C##cs329e_btb687', PASS='orcl_btb687', MODE='native_mode', 
-                                                                   MODEL='model', returnDimensions = 'False', returnFor = 'JSON', 
-                                                                   p1=KPI_High_Max_value, p2=KPI_Medium_Max_value), verbose = TRUE)));
+dfb <-
+  data.frame(fromJSON(getURL(
+    URLencode(
+      gsub(
+        "\n", " ", 'skipper.cs.utexas.edu:5001/rest/native/?query=
+        "select YEARINC, RACE, sum_fatalities, sum_total, kpi as ratio,
+        case
+        when kpi > "p1" then \\\'01 High Fatality\\\'
+        when kpi > "p2" then \\\'02 Medium Fatality\\\'
+        else \\\'03 Low Fatality\\\'
+        end kpi
+        from (select YEARINC, RACE,
+        sum(FATALITIES) as sum_fatalities, sum(TOTAL_VICTIMS) as sum_total,
+        sum(FATALITIES) / sum(TOTAL_VICTIMS) as kpi
+        from shootingsmass
+        group by YEARINC, RACE)
+        order by YEARINC desc;"
+        '
+      )
+      ), httpheader = c(
+        DB = 'jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl',
+        USER =
+          'C##cs329e_btb687', PASS = 'orcl_btb687', MODE = 'native_mode',
+        MODEL =
+          'model', returnDimensions = 'False', returnFor = 'JSON',
+        p1 =
+          KPI_High_Max_value, p2 = KPI_Medium_Max_value
+    ), verbose = TRUE
+  )));
 
 # Pull data for scatter plot before placing into the shiny server
-dfc <- data.frame(fromJSON(getURL(URLencode('skipper.cs.utexas.edu:5001/rest/native/?query="select * from shootingsmass"'),httpheader=c(DB='jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl', USER='C##cs329e_btb687', PASS='orcl_btb687', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ));
+dfc <- data.frame(fromJSON(getURL(URLencode('skipper.cs.utexas.edu:5001/rest/native/?query="select * from shootingsmass"'),httpheader=c(DB='jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl', USER='C##cs329e_btb687', PASS='orcl_btb687', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE)));
 
-dfc.m = melt(dfc, id.vars ="TOTAL_VICTIMS", measure.vars = c("FATALITIES","INJURED"))
-dfc.m$VENUE = dfc$VENUE
+dfca = melt(dfc, id.vars ="TOTAL_VICTIMS", measure.vars = c("FATALITIES","INJURED"))
+dfca$VENUE = dfc$VENUE
 
 # Pull data for blending before placing into the shiny server
-dfda <- data.frame(fromJSON(getURL(URLencode('skipper.cs.utexas.edu:5001/rest/native/?query="select YEARINC, sum_fatalities from (select YEARINC, sum(FATALITIES) as sum_fatalities from shootingsmass group by YEARINC) order by YEARINC;"'),httpheader=c(DB='jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl', USER='C##cs329e_btb687', PASS='orcl_btb687', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+dfda <- data.frame(fromJSON(getURL(URLencode('skipper.cs.utexas.edu:5001/rest/native/?query="select YEARINC, sum_fatalities from (select YEARINC, sum(FATALITIES) as sum_fatalities from shootingsmass group by YEARINC) order by YEARINC;"'),httpheader=c(DB='jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl', USER='C##cs329e_btb687', PASS='orcl_btb687', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE)))
 
-dfdb <- data.frame(fromJSON(getURL(URLencode('skipper.cs.utexas.edu:5001/rest/native/?query="select YEARINC, HOMICIDES from HOMICIDES"'),httpheader=c(DB='jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl', USER='C##cs329e_btb687', PASS='orcl_btb687', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+dfdb <- data.frame(fromJSON(getURL(URLencode('skipper.cs.utexas.edu:5001/rest/native/?query="select YEARINC, HOMICIDES from HOMICIDES"'),httpheader=c(DB='jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl', USER='C##cs329e_btb687', PASS='orcl_btb687', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE)))
 
 dfd <- dplyr::inner_join(dfda, dfdb, by="YEARINC") 
 
@@ -68,7 +95,7 @@ dfd <- dplyr::inner_join(dfda, dfdb, by="YEARINC")
 # Begin shiny server code
 shinyServer(function(input, output) {
   
-  KPI_Low_Max_value <- reactive({input$KPI1})     
+  KPI_High_Max_value <- reactive({input$KPI1})     
   KPI_Medium_Max_value <- reactive({input$KPI2})
   rv <- reactiveValues(alpha = 0.50)
   observeEvent(input$light, { rv$alpha <- 0.50 })
@@ -160,7 +187,7 @@ shinyServer(function(input, output) {
   
   # Begin code for Third Tab:
   # Place dfc into reactive function
-  df3 <- eventReactive(input$clicks3, {dfc.m
+  df3 <- eventReactive(input$clicks3, {dfca
   })
   
   output$distPlot3 <- renderPlot(height=1000, width=2000, {
@@ -206,15 +233,15 @@ shinyServer(function(input, output) {
   })
   
   # Begin code for Fifth Tab:
-  # Use df4 from previous tab
-  
+  df5 <- eventReactive(input$clicks5, {dfd
+  })
   output$distPlot5 <- renderPlot(height=1000, width=2000, {
     plot4 <- ggplot() + 
       coord_cartesian() + 
       #facet_grid(~FATALITIES) +
       labs(title='Mass Shootings of Fatalities per Year') +
       labs(x="Year", y=paste("Fatalities (per year)")) +
-      layer(data=df4(), 
+      layer(data=df5(), 
             mapping=aes(x=YEARINC, y=SUM_FATALITIES), 
             stat="identity", 
             stat_params=list(), 

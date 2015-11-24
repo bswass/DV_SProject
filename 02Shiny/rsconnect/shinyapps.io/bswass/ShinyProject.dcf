@@ -1,8 +1,8 @@
 name: ShinyProject
 account: bswass
 server: shinyapps.io
-bundleId: 315955
+bundleId: 317855
 url: https://bswass.shinyapps.io/ShinyProject
-when: 1448158003.67868
+when: 1448331473.71417
 asMultiple: FALSE
 asStatic: FALSE

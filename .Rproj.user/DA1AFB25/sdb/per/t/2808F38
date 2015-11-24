@@ -1,0 +1,17 @@
+{
+    "contents" : "require(\"jsonlite\")\nrequire(\"RCurl\")\nrequire(ggplot2)\nrequire(dplyr)\n\nKPI_High_Max_value = .666\nKPI_Medium_Max_value = .4\n\ndf <- data.frame(fromJSON(getURL(URLencode(gsub(\"\\n\", \" \", 'skipper.cs.utexas.edu:5001/rest/native/?query=\n                                                \"select YEARINC, sum_fatalities, sum_total, kpi as ratio, DATEINC,\n                                                case\n                                                when kpi > \"p1\" then \\\\\\'01 High Fatality\\\\\\'\n                                                when kpi > \"p2\" then \\\\\\'02 Medium Fatality\\\\\\'\n                                                else \\\\\\'03 Low Fatality\\\\\\'\n                                                end kpi\n                                                from (select YEARINC,\n                                                sum(FATALITIES) as sum_fatalities, sum(TOTAL_VICTIMS) as sum_total,\n                                                sum(FATALITIES) / sum(TOTAL_VICTIMS) as kpi, DATEINC\n                                                from shootingsmass\n                                                group by YEARINC, DATEINC)\n                                                order by YEARINC;\"\n                                                ')), httpheader=c(DB='jdbc:oracle:thin:@sayonara.microlab.cs.utexas.edu:1521:orcl', \n                                                                  USER='C##cs329e_btb687', PASS='orcl_btb687', MODE='native_mode', \n                                                                  MODEL='model', returnDimensions = 'False', returnFor = 'JSON', \n                                                                  p1=KPI_High_Max_value, p2=KPI_Medium_Max_value), verbose = TRUE))); View(df)\n\ndf$DATEINC <- as.character(as.Date(df$DATEINC,format='%m/%d/%Y'))\n\n\n\nggplot() + \n  coord_cartesian() + \n  scale_x_discrete() +\n  scale_y_continuous() +\n  labs(title='BarChart') +\n  labs(x=paste(\"YEAR\"), y=paste(\"FATALITY RATIO\")) +\n  geom_bar(position=\"dodge\") +\n  \n  layer(data=df, \n        mapping=aes(x=DATEINC, y= RATIO, ymax=max(1)*1.05 ), \n        stat=\"identity\", \n        stat_params=list(), \n        geom=\"bar\",\n        geom_params=list(colour=\"black\"), \n        position=position_identity()\n        \n  ) + coord_flip() + \n  #labels\n  layer(data=df, \n        mapping=aes(x=DATEINC, y=RATIO, label=round(RATIO,4), ymax=max(1)*1.05 ), \n        stat=\"identity\", \n        stat_params=list(), \n        geom=\"text\",\n        geom_params=list(colour=\"black\", hjust=-0.5), \n        position=position_identity()\n  ) +\n  #Color\n  layer(data=df, \n        mapping=aes(x=DATEINC, y=RATIO, fill=KPI), \n        stat=\"identity\", \n        stat_params=list(), \n        geom=\"bar\",\n        geom_params=list(alpha=0.50), \n        position=position_identity()\n  ) +  \n  #H-line\n  layer(data=df, \n        mapping=aes(yintercept = mean(RATIO)), \n        geom=\"hline\",\n        geom_params=list(colour=\"red\")\n  )",
+    "created" : 1448330774465.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2927108662",
+    "id" : "2808F38",
+    "lastKnownWriteTime" : 1447469182,
+    "path" : "C:/DataViz/4. Tableau Project 1/01 Data/Shooting_BarChart.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
